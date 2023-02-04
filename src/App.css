@@ -1,0 +1,134 @@
+.App {
+  text-align: center;
+  text-decoration: solid;
+
+}
+
+.new {
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 10px;
+}
+
+.newTask-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px;
+}
+
+.input {
+  width: 200px;
+  height: 30px;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+
+}
+
+.date {
+  width: 200px;
+  height: 30px;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  margin: 10px;
+}
+
+.add {
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 10px;
+}
+
+.cancel {
+  background-color: #f44336;
+  color: white;
+  padding: 14px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 10px;
+}
+
+.box {
+  width: 200px;
+  height: 30px;
+  padding: 10px;
+  border: 1px solid #2a9aa4;
+  margin: 10px;
+  text-align: center;
+  border-radius: 5px;
+  
+}
+
+.main-section {
+  background-color: #b4dbe7;
+  padding: 20px;
+  text-align: center;
+  justify-content: center;
+}
+
+body{
+  background-color:rgb(49, 149, 174);
+  text-align: center;
+  margin:auto;
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  padding: 0;
+  width: 200px;
+  height: 100%;
+  background-color: #83bed9;
+  text-align: center;
+}
+
+
+
+.side-nav li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 50px;
+  background-color: #80ebfa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+}
+
+.side-nav li:hover {
+  background-color: #8fcae3;
+}
+
+.side-nav div {
+  width: 100%;
+  text-align: center;
+  font-size: 16px;
+}
+
+
+
+
+
+
