@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'docker-node' }
+    agent { label 'Agent-node' }
     stages {
         stage('Build') {
             steps {
