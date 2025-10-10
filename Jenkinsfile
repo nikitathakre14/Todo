@@ -6,6 +6,7 @@ pipeline {
         RELEASE_NAME = 'todo-app-release'
         CHART_PATH = 'helm/todo-app'
         NAMESPACE = 'default'
+        KUBECONFIG_CREDENTIALS_ID = 'minikube-kubeconfig'
     }
 
     stages {
@@ -25,12 +26,17 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 echo "Deploying to Minikube using Helm..."
-                sh """
-                    helm upgrade --install ${RELEASE_NAME} ${CHART_PATH} \
-                      --set image.repository=${IMAGE_NAME} \
-                      --namespace ${NAMESPACE} \
-                      --create-namespace
-                """
+                withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
+                    sh """
+                        export KUBECONFIG=$KUBECONFIG
+                        kubectl config get-contexts
+                        kubectl get nodes
+                        helm upgrade --install ${RELEASE_NAME} ${CHART_PATH} \
+                          --set image.repository=${IMAGE_NAME} \
+                          --namespace ${NAMESPACE} \
+                          --create-namespace
+                    """
+                }
             }
         }
     }
@@ -44,4 +50,5 @@ pipeline {
         }
     }
 }
+
 
