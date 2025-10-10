@@ -6,7 +6,7 @@ pipeline {
         RELEASE_NAME = 'todo-app-release'
         CHART_PATH = 'helm/todo-app'
         NAMESPACE = 'default'
-        KUBECONFIG_CREDENTIALS_ID = 'minikube-kubeconfig'
+        KUBECONFIG_CREDENTIALS_ID = 'Kubernetes'
     }
 
     stages {
