@@ -7,6 +7,12 @@ pipeline {
         CHART_PATH = 'helm/todo-app'
         NAMESPACE = 'default'
         KUBECONFIG_CREDENTIALS_ID = 'Kubernetes'
+        SONAR_PROJECT_KEY = 'nikitathakre14_Todo' // Replace with your actual project key
+        SONAR_ORGANIZATION = 'nikitathakre14'       // Replace with your actual organization key
+    }
+
+    tools {
+        sonarQubeScanner 'SonarScanner' // Make sure this name matches your Jenkins tool config
     }
 
     stages {
@@ -16,10 +22,22 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Test & SonarCloud Analysis') {
+            environment {
+                SONAR_TOKEN = credentials('SONAR')
+            }
             steps {
-                echo "Running tests..."
-                // Add test commands if needed
+                echo "Running tests and SonarCloud analysis..."
+                withSonarQubeEnv('SonarCloud') {
+                    sh """
+                        sonar-scanner \
+                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                          -Dsonar.organization=${SONAR_ORGANIZATION} \
+                          -Dsonar.sources=. \
+                          -Dsonar.host.url=https://sonarcloud.io \
+                          -Dsonar.login=$SONAR_TOKEN
+                    """
+                }
             }
         }
 
@@ -50,5 +68,3 @@ pipeline {
         }
     }
 }
-
-
