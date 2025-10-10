@@ -10,11 +10,6 @@ pipeline {
         SONAR_PROJECT_KEY = 'nikitathakre14_Todo' // Replace with your actual project key
         SONAR_ORGANIZATION = 'nikitathakre14'       // Replace with your actual organization key
     }
-
-    tools {
-        sonarQubeScanner 'SonarScanner' // Make sure this name matches your Jenkins tool config
-    }
-
     stages {
         stage('Build') {
             steps {
@@ -30,7 +25,7 @@ pipeline {
                 echo "Running tests and SonarCloud analysis..."
                 withSonarQubeEnv('SonarCloud') {
                     sh """
-                        sonar-scanner \
+                           mvn clean verify sonar:sonar \
                           -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                           -Dsonar.organization=${SONAR_ORGANIZATION} \
                           -Dsonar.sources=. \
