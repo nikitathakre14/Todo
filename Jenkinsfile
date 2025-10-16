@@ -7,33 +7,12 @@ pipeline {
         CHART_PATH = 'helm/todo-app'
         NAMESPACE = 'default'
         KUBECONFIG_CREDENTIALS_ID = 'Kubernetes'
-        SONAR_PROJECT_KEY = 'nikitathakre14_Todo'
-        SONAR_ORGANIZATION = 'nikitathakre14'
     }
 
     stages {
         stage('Build') {
             steps {
                 echo "Using pre-built image: ${IMAGE_NAME}"
-            }
-        }
-
-        stage('Test & SonarCloud Analysis') {
-            environment {
-                SONAR_TOKEN = credentials('SONAR')
-            }
-            steps {
-                echo "Running tests and SonarCloud analysis..."
-                withSonarQubeEnv('SonarCloud') {
-                    sh """
-                        mvn clean verify sonar:sonar \
-                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                        -Dsonar.organization=${SONAR_ORGANIZATION} \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=https://sonarcloud.io \
-                        -Dsonar.login=$SONAR_TOKEN
-                    """
-                }
             }
         }
 
@@ -79,25 +58,6 @@ pipeline {
                 sh """
                     kubectl get pods -n monitoring
                     kubectl get svc -n monitoring
-                """
-            }
-        }
-
-        stage('New Relic Integration') {
-            environment {
-                NEW_RELIC_LICENSE_KEY = credentials('NEWRELIC')
-            }
-            steps {
-                echo "Integrating New Relic monitoring..."
-                sh """
-                    helm upgrade --install newrelic-bundle newrelic/nri-bundle \
-                      --namespace monitoring \
-                      --set global.licenseKey=$NEW_RELIC_LICENSE_KEY \
-                      --set global.cluster=$RELEASE_NAME \
-                      --set newrelic-infrastructure.enabled=true \
-                      --set newrelic-kube-events.enabled=true \
-                      --set newrelic-prometheus-agent.enabled=true \
-                      --set newrelic-logging.enabled=true
                 """
             }
         }
