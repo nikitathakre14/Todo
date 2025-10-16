@@ -7,9 +7,10 @@ pipeline {
         CHART_PATH = 'helm/todo-app'
         NAMESPACE = 'default'
         KUBECONFIG_CREDENTIALS_ID = 'Kubernetes'
-        SONAR_PROJECT_KEY = 'nikitathakre14_Todo' // Replace with your actual project key
-        SONAR_ORGANIZATION = 'nikitathakre14'       // Replace with your actual organization key
+        SONAR_PROJECT_KEY = 'nikitathakre14_Todo'
+        SONAR_ORGANIZATION = 'nikitathakre14'
     }
+
     stages {
         stage('Build') {
             steps {
@@ -25,12 +26,12 @@ pipeline {
                 echo "Running tests and SonarCloud analysis..."
                 withSonarQubeEnv('SonarCloud') {
                     sh """
-                           mvn clean verify sonar:sonar \
-                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                          -Dsonar.organization=${SONAR_ORGANIZATION} \
-                          -Dsonar.sources=. \
-                          -Dsonar.host.url=https://sonarcloud.io \
-                          -Dsonar.login=$SONAR_TOKEN
+                        mvn clean verify sonar:sonar \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.organization=${SONAR_ORGANIZATION} \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=https://sonarcloud.io \
+                        -Dsonar.login=$SONAR_TOKEN
                     """
                 }
             }
@@ -52,14 +53,62 @@ pipeline {
                 }
             }
         }
+
+        stage('Setup Prometheus & Grafana') {
+            steps {
+                echo "Setting up Prometheus and Grafana monitoring stack..."
+                sh """
+                    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+                    helm repo add grafana https://grafana.github.io/helm-charts
+                    helm repo update
+
+                    helm upgrade --install prometheus prometheus-community/prometheus \
+                      --namespace monitoring --create-namespace
+
+                    helm upgrade --install grafana grafana/grafana \
+                      --namespace monitoring --create-namespace \
+                      --set adminPassword='admin' \
+                      --set service.type=NodePort
+                """
+            }
+        }
+
+        stage('Verify Monitoring Setup') {
+            steps {
+                echo "Verifying Prometheus and Grafana pods..."
+                sh """
+                    kubectl get pods -n monitoring
+                    kubectl get svc -n monitoring
+                """
+            }
+        }
+
+        stage('New Relic Integration') {
+            environment {
+                NEW_RELIC_LICENSE_KEY = credentials('NEWRELIC')
+            }
+            steps {
+                echo "Integrating New Relic monitoring..."
+                sh """
+                    helm upgrade --install newrelic-bundle newrelic/nri-bundle \
+                      --namespace monitoring \
+                      --set global.licenseKey=$NEW_RELIC_LICENSE_KEY \
+                      --set global.cluster=$RELEASE_NAME \
+                      --set newrelic-infrastructure.enabled=true \
+                      --set newrelic-kube-events.enabled=true \
+                      --set newrelic-prometheus-agent.enabled=true \
+                      --set newrelic-logging.enabled=true
+                """
+            }
+        }
     }
 
     post {
         success {
-            echo "Build and deployment succeeded"
+            echo "Build, deployment, and monitoring setup succeeded"
         }
         failure {
-            echo "Build or deployment failed"
+            echo "Build, deployment, or monitoring setup failed"
         }
     }
 }
