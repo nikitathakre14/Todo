@@ -1,28 +1,45 @@
-name: SonarCloud Scan
+name: SonarCloud
+
 on:
   push:
     branches:
-      - main  # or your default branch
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   sonarcloud:
-    name: SonarCloud
+    name: SonarCloud Scan
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          java-version: '17'  # or your project's Java version
-          distribution: 'temurin'
+          python-version: '3.10'  # or your preferred version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=your_flask_app_folder --cov-report=xml
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
+        uses: SonarCloud/sonarcloud-github-action@v2
         with:
           projectKey: nikitathakre14_Todo
           organization: nikitathakre14
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          token: ${{ secrets.SONAR_TOKEN }}
