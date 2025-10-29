@@ -18,18 +18,22 @@ pipeline {
                 echo "Using pre-built image: ${IMAGE_NAME}"
             }
         }
-
+        
         stage('SonarQube Analysis') {
             steps {
-                echo "Running SonarQube analysis using agent-installed sonar-scanner..."
+                echo "Running SonarQube analysis using Docker-based sonar-scanner..."
                 withSonarQubeEnv('SonarServer') {
-                    sh '''
-                        sonar-scanner \
-                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                          -Dsonar.sources=. \
-                          -Dsonar.host.url=${SONAR_HOST_URL} \
-                          -Dsonar.login=${SONARQUBE_TOKEN}
-                    '''
+                    script {
+                        docker.image('sonarsource/sonar-scanner-cli').inside {
+                            sh """
+                                sonar-scanner \
+                                -Dsonar.projectKey=sonar-test-app \
+                                -Dsonar.sources=sonar-test-app \
+                                -Dsonar.host.url=${SONAR_HOST_URL} \
+                                -Dsonar.login=${SONAR_AUTH_TOKEN}
+                            """
+                        }
+                    }
                 }
             }
         }
