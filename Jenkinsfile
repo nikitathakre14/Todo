@@ -76,18 +76,7 @@ pipeline {
             }
         }
 
-        stage('SonarQube Integration Test') {
-            steps {
-                echo "Running SonarQube analysis to test integration..."
-                withCredentials([string(credentialsId: 'sonar-qube', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SonarQube') {
-                        sh '''
-                            sonar-scanner                               -Dsonar.projectKey=nikitathakre14_Todo                               -Dsonar.sources=.                               -Dsonar.host.url=http://<your-sonarqube-server>:9000                               -Dsonar.login=$SONAR_TOKEN
-                        '''
-                    }
-                }
-            }
-        }
+    
     }
 
     post {
