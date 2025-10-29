@@ -7,6 +7,10 @@ pipeline {
         CHART_PATH = 'helm/todo-app'
         NAMESPACE = 'default'
         KUBECONFIG_CREDENTIALS_ID = 'Kubernetes'
+        SONAR_PROJECT_KEY = 'todo-2.0'
+        SONARQUBE_TOKEN = credentials('SonarQubeServer') 
+        SONAR_HOST_URL = 'http://localhost:9000'
+
     }
 
     stages {
@@ -15,7 +19,24 @@ pipeline {
                 echo "Using pre-built image: ${IMAGE_NAME}"
             }
         }
-
+        
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQube-Server') {
+                        sh '''
+                            sonar-scanner \
+                                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                                -Dsonar.sources=. \
+                                -Dsonar.projectVersion=${DOCKER_TAG} \
+                                -Dsonar.host.url=${SONAR_HOST_URL} \
+                                -Dsonar.login=${SONARQUBE_TOKEN}
+                        '''
+                    }
+                }
+            }
+        }
+        
         stage('Deploy to Minikube') {
             steps {
                 echo "Deploying to Minikube using Helm..."
