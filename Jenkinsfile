@@ -9,8 +9,6 @@ pipeline {
         KUBECONFIG_CREDENTIALS_ID = 'Kubernetes'
         SONAR_PROJECT_KEY = 'todo-2.0'
         SONARQUBE_TOKEN = credentials('SonarQubeServer') 
-        SONAR_HOST_URL = 'http://localhost:9000'
-
     }
 
     stages {
@@ -30,7 +28,7 @@ pipeline {
                                 sonarsource/sonar-scanner-cli \
                                 -Dsonar.projectKey=todo-2.0 \
                                 -Dsonar.sources=. \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
+                                -Dsonar.host.url=http://host.docker.internal:9001\
                                 -Dsonar.login=${SONARQUBE_TOKEN}
                         '''
                     }
