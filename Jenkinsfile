@@ -28,7 +28,7 @@ pipeline {
                                 sonarsource/sonar-scanner-cli \
                                 -Dsonar.projectKey=todo-2.0 \
                                 -Dsonar.sources=. \
-                                -Dsonar.host.url=http:// 192.168.49.2:31355\
+                                -Dsonar.host.url=http://192.168.49.2:31355\
                                 -Dsonar.login=${SONARQUBE_TOKEN}
                         '''
                     }
