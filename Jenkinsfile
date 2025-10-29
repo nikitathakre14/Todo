@@ -8,7 +8,8 @@ pipeline {
         NAMESPACE = 'default'
         KUBECONFIG_CREDENTIALS_ID = 'Kubernetes'
         SONAR_PROJECT_KEY = 'todo-2.0'
-        SONARQUBE_TOKEN = credentials('SonarQubeServer') 
+        SONAR_HOST_URL = 'http://localhost:9000'
+        SONARQUBE_TOKEN = credentials('SonarQubeServer')
     }
 
     stages {
@@ -17,25 +18,22 @@ pipeline {
                 echo "Using pre-built image: ${IMAGE_NAME}"
             }
         }
-        
+
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    withSonarQubeEnv('SonarServer') {
-                        sh '''
-                            docker run --rm \
-                                -v $(pwd):/usr/src \
-                                sonarsource/sonar-scanner-cli \
-                                -Dsonar.projectKey=todo-2.0 \
-                                -Dsonar.sources=. \
-                                -Dsonar.host.url=http://192.168.49.2:31355\
-                                -Dsonar.login=${SONARQUBE_TOKEN}
-                        '''
-                    }
+                echo "Running SonarQube analysis using agent-installed sonar-scanner..."
+                withSonarQubeEnv('SonarServer') {
+                    sh '''
+                        sonar-scanner \
+                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                          -Dsonar.sources=. \
+                          -Dsonar.host.url=${SONAR_HOST_URL} \
+                          -Dsonar.login=${SONARQUBE_TOKEN}
+                    '''
                 }
             }
         }
-        
+
         stage('Deploy to Minikube') {
             steps {
                 echo "Deploying to Minikube using Helm..."
@@ -44,7 +42,10 @@ pipeline {
                         export KUBECONFIG=$KUBECONFIG
                         kubectl config get-contexts
                         kubectl get nodes
-                        helm upgrade --install ${RELEASE_NAME} ${CHART_PATH}                           --set image.repository=${IMAGE_NAME}                           --namespace ${NAMESPACE}                           --create-namespace
+                        helm upgrade --install ${RELEASE_NAME} ${CHART_PATH} \
+                          --set image.repository=${IMAGE_NAME} \
+                          --namespace ${NAMESPACE} \
+                          --create-namespace
                     '''
                 }
             }
@@ -58,9 +59,13 @@ pipeline {
                     helm repo add grafana https://grafana.github.io/helm-charts
                     helm repo update
 
-                    helm upgrade --install prometheus prometheus-community/prometheus                       --namespace monitoring --create-namespace
+                    helm upgrade --install prometheus prometheus-community/prometheus \
+                      --namespace monitoring --create-namespace
 
-                    helm upgrade --install grafana grafana/grafana                       --namespace monitoring --create-namespace                       --set adminPassword='admin'                       --set service.type=NodePort
+                    helm upgrade --install grafana grafana/grafana \
+                      --namespace monitoring --create-namespace \
+                      --set adminPassword='admin' \
+                      --set service.type=NodePort
                 '''
             }
         }
@@ -74,8 +79,6 @@ pipeline {
                 '''
             }
         }
-
-    
     }
 
     post {
