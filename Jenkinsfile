@@ -20,15 +20,12 @@ pipeline {
             steps {
                 echo "Deploying to Minikube using Helm..."
                 withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
-                    sh """
+                    sh '''
                         export KUBECONFIG=$KUBECONFIG
                         kubectl config get-contexts
                         kubectl get nodes
-                        helm upgrade --install ${RELEASE_NAME} ${CHART_PATH} \
-                          --set image.repository=${IMAGE_NAME} \
-                          --namespace ${NAMESPACE} \
-                          --create-namespace
-                    """
+                        helm upgrade --install ${RELEASE_NAME} ${CHART_PATH}                           --set image.repository=${IMAGE_NAME}                           --namespace ${NAMESPACE}                           --create-namespace
+                    '''
                 }
             }
         }
@@ -36,39 +33,48 @@ pipeline {
         stage('Setup Prometheus & Grafana') {
             steps {
                 echo "Setting up Prometheus and Grafana monitoring stack..."
-                sh """
+                sh '''
                     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
                     helm repo add grafana https://grafana.github.io/helm-charts
                     helm repo update
 
-                    helm upgrade --install prometheus prometheus-community/prometheus \
-                      --namespace monitoring --create-namespace
+                    helm upgrade --install prometheus prometheus-community/prometheus                       --namespace monitoring --create-namespace
 
-                    helm upgrade --install grafana grafana/grafana \
-                      --namespace monitoring --create-namespace \
-                      --set adminPassword='admin' \
-                      --set service.type=NodePort
-                """
+                    helm upgrade --install grafana grafana/grafana                       --namespace monitoring --create-namespace                       --set adminPassword='admin'                       --set service.type=NodePort
+                '''
             }
         }
 
         stage('Verify Monitoring Setup') {
             steps {
                 echo "Verifying Prometheus and Grafana pods..."
-                sh """
+                sh '''
                     kubectl get pods -n monitoring
                     kubectl get svc -n monitoring
-                """
+                '''
+            }
+        }
+
+        stage('SonarQube Integration Test') {
+            steps {
+                echo "Running SonarQube analysis to test integration..."
+                withCredentials([string(credentialsId: 'sonar-qube', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('SonarQube') {
+                        sh '''
+                            sonar-scanner                               -Dsonar.projectKey=nikitathakre14_Todo                               -Dsonar.sources=.                               -Dsonar.host.url=http://<your-sonarqube-server>:9000                               -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
+                }
             }
         }
     }
 
     post {
         success {
-            echo "Build, deployment, and monitoring setup succeeded"
+            echo "Build, deployment, monitoring setup, and SonarQube integration succeeded"
         }
         failure {
-            echo "Build, deployment, or monitoring setup failed"
+            echo "Pipeline failed during one of the stages"
         }
     }
 }
