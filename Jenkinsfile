@@ -25,10 +25,11 @@ pipeline {
                 script {
                     withSonarQubeEnv('SonarServer') {
                         sh '''
-                            sonar-scanner \
-                                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            docker run --rm \
+                                -v $(pwd):/usr/src \
+                                sonarsource/sonar-scanner-cli \
+                                -Dsonar.projectKey=todo-2.0 \
                                 -Dsonar.sources=. \
-                                -Dsonar.projectVersion=${DOCKER_TAG} \
                                 -Dsonar.host.url=${SONAR_HOST_URL} \
                                 -Dsonar.login=${SONARQUBE_TOKEN}
                         '''
