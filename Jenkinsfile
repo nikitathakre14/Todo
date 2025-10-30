@@ -7,9 +7,6 @@ pipeline {
         CHART_PATH = 'helm/todo-app'
         NAMESPACE = 'default'
         KUBECONFIG_CREDENTIALS_ID = 'Kubernetes'
-        SONAR_PROJECT_KEY = 'todo-2.0'
-        SONAR_HOST_URL = 'http://localhost:9000'
-        SONARQUBE_TOKEN = credentials('SonarQubeServer')
     }
 
     stages {
@@ -19,23 +16,24 @@ pipeline {
             }
         }
         
-        stage('SonarQube Analysis') {
-            steps {
-                echo "Running SonarQube analysis using Docker-based sonar-scanner..."
-                withSonarQubeEnv('SonarServer') {
-                    script {
-                        docker.image('sonarsource/sonar-scanner-cli').inside {
-                            sh """
-                                sonar-scanner \
-                                -Dsonar.projectKey=sonar-test-app \
-                                -Dsonar.sources=sonar-test-app \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.login=${SONAR_AUTH_TOKEN}
-                            """
-                        }
-                    }
+      stage('SonarCloud Analysis') {
+            agent {
+                docker {
+                    image 'sonarsource/sonar-scanner-cli:latest'
                 }
             }
+            steps {
+                        withSonarQubeEnv('SonarCloud') {
+                            sh '''
+                                sonar-scanner \
+                                  -Dsonar.projectKey=nikitathakre14_Todo \
+                                  -Dsonar.organization=nikitathakre14\
+                                  -Dsonar.sources=. \
+                                  -Dsonar.host.url=https://sonarcloud.io \
+                                  -Dsonar.login=837eb4c10bbb7ede70918c1efda6f172cbe639f4
+                            '''
+                        }
+                    }
         }
 
         stage('Deploy to Minikube') {
