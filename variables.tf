@@ -1,5 +1,5 @@
 variable "region" {
-  default = "us-east-1"
+  default = "ap-south-1"
 }
 
 variable "vpc_cidr" {
@@ -15,5 +15,9 @@ variable "private_subnets" {
 }
 
 variable "azs" {
-  default = ["us-east-1a", "us-east-1b"]
+  default = ["ap-south-1a", "ap-south-1b"]
+}
+
+variable "cluster_name" {
+  default = "demo-eks"
 }
